@@ -51,12 +51,12 @@ let menumsg = `
 *🌟 Reply the Number you want to select*
 `
 let downloadmenu = `
-📥 *DOWNLOAD COMMANDS* 📥\n\n
+📥 *DOWNLOAD COMMANDS* 📥\n\n${menu.download}
 `
 // Send the initial message and store the message ID
 const sentMsg = await conn.sendMessage(from, {
 document: { url: pdfUrl }, // Path to your PDF file
-    fileName: 'ZAZIE-MD-V1', // Filename for the document
+    fileName: 'QUEEN-ZAZIE-MD-V1', // Filename for the document
     mimetype: "application/pdf",
     fileLength: 99999999999999,
     caption: menumsg,
@@ -99,7 +99,7 @@ conn.ev.on('messages.upsert', async (messageUpdate) => {
             // Handle option 1 (Audio File)
             await conn.sendMessage(from, {
             document: { url: pdfUrl }, // Path to your PDF file
-                fileName: 'ZAZIE-MD-V1', // Filename for the document
+                fileName: 'QUEEN-ZAZIE-MD-V1', // Filename for the document
                 mimetype: "application/pdf",
                 fileLength: 99999999999999,
                 caption: downloadmenu,
