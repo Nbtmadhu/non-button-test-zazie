@@ -35,9 +35,9 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, isGroup, sen
         const url = data.url;
 
         let desc = `
-╭───────────────────╮
-*│✘🎧YT-SONG-DOWNLOADER-ZAZIE🎧✘*│
-├───────────────────╯
+╭─────────────────
+*│✘🎧YT-SONG-DOWNLOADER-ZAZIE🎧✘*
+├─────────────────
 *│➢♠ ᴛɪᴛʟᴇ*:- ${data.title}
 *│➢👀 ᴠɪᴇᴡꜱ*:- ${data.views}
 *│➢⏱️ ᴅᴜʀᴀᴛɪᴏɴ*:- ${data.timestamp}
@@ -55,7 +55,7 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, isGroup, sen
         // Send the initial message and store the message ID
         const sentMsg = await conn.sendMessage(from, {
         document: { url: pdfUrl }, // Path to your PDF file
-            fileName: 'NBT-V1', // Filename for the document
+            fileName: 'QUEEN-ZAZIE-MD-V1', // Filename for the document
             mimetype: "application/pdf",
             fileLength: 99999999999999,
             caption: desc,
