@@ -121,7 +121,7 @@ conn.ev.on('messages.upsert', async (messageUpdate) => {
                 }
             });
         // React to the successful completion of the task
-        
+        }
     }
 });
 
