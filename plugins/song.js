@@ -54,28 +54,29 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, isGroup, sen
 
         // Send the initial message and store the message ID
         const sentMsg = await conn.sendMessage(from, {
-            document: { url: pdfUrl }, 
-            fileName: 'NBT-V1',
+        document: { url: pdfUrl }, // Path to your PDF file
+            fileName: 'NBT-V1', // Filename for the document
             mimetype: "application/pdf",
             fileLength: 99999999999999,
-            text: desc,
+            caption: desc,
             contextInfo: {
                 forwardingScore: 999,
                 isForwarded: true,
                 forwardedNewsletterMessageInfo: {
-                  newsletterName: '乡Qҽҽɳ-乙azie-MultiDevice࿐​',
-                  newsletterJid: "120363331860205900@newsletter", 
-                    externalAdReply: {
-                        title: data.title,
-                        body: data.ago,
-                        thumbnailUrl: data.thumbnail,
-                        sourceUrl: data.url,
-                        mediaType: 1,
-                        renderLargerThumbnail: true
-                    }
+                    newsletterName: '乡Qҽҽɳ-乙azie-MultiDevice࿐',
+                    newsletterJid: "120363331860205900@newsletter",
+                },
+                externalAdReply: {
+                    title: data.title,
+                    body: data.ago,
+                    thumbnailUrl: data.thumbnail, // Use the URL directly here
+                    sourceUrl: 'https://queen-zazie-md.vercel.app',
+                    mediaType: 1,
+                    renderLargerThumbnail: true
                 }
             }
         });
+        
         const messageID = sentMsg.key.id; // Save the message ID for later reference
 
 
