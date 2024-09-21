@@ -5,7 +5,7 @@ const prabathApi = "6467ad0b29"; // API key || 2 months
 const api = "https://prabath-md-api.up.railway.app/api/"; // Base API link
 
 cmd({
-    pattern: "csub",
+    pattern: "zazie",
     alias: ["mv", "moviedl", "mvdl", "cinesub", "cinesubz"],
     desc: "movie",
     category: "download",
