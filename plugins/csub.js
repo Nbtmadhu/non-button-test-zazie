@@ -30,6 +30,8 @@ cmd({
             messageID: sentMsg.key.id,
             searchData: data.data.data
         };
+
+        console.log(`Pending request set for ${from}:`, pendingRequests[from]);
     } catch (e) {
         console.log(e);
     }
@@ -59,6 +61,8 @@ cmd({
             messageID: sentMsg.key.id,
             searchData: data.data.data
         };
+
+        console.log(`Pending request set for ${from}:`, pendingRequests[from]);
     } catch (e) {
         console.log(e);
     }
@@ -72,9 +76,13 @@ conn.ev.on('messages.upsert', async (messageUpdate) => {
     const from = mek.key.remoteJid;
     const sender = mek.key.participant || mek.key.remoteJid;
 
+    console.log(`Received message from ${from}: ${messageType}`);
+
     if (pendingRequests[from]) {
         const { type, messageID, searchData } = pendingRequests[from];
         const isReplyToSentMsg = mek.message.extendedTextMessage && mek.message.extendedTextMessage.contextInfo.stanzaId === messageID;
+
+        console.log(`Pending request found for ${from}, type: ${type}, isReplyToSentMsg: ${isReplyToSentMsg}`);
 
         if (type === 'movie-selection' && isReplyToSentMsg) {
             const selectedMovieIndex = parseInt(messageType.trim()) - 1;
@@ -107,6 +115,8 @@ conn.ev.on('messages.upsert', async (messageUpdate) => {
                 messageID: sentMsg.key.id,
                 downloadLinks: desc.data.dllinks.directDownloadLinks
             };
+
+            console.log(`Updated pending request for ${from}:`, pendingRequests[from]);
         } else if (type === 'quality-selection' && isReplyToSentMsg) {
             const selectedQualityIndex = parseInt(messageType.trim()) - 1;
             const { downloadLinks } = pendingRequests[from];
@@ -131,6 +141,8 @@ conn.ev.on('messages.upsert', async (messageUpdate) => {
             await conn.sendMessage(from, { react: { text: '🎬', key: sendDoc.key } });
 
             delete pendingRequests[from]; // Clear the request after completing
+
+            console.log(`Pending request completed for ${from}`);
         }
     }
 });
