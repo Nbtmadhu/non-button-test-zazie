@@ -74,7 +74,7 @@ cmd({
 *IMDB Rating:* ${imdbRating}
 *Url:* ${url}
 
-*Available Qualities:*
+*Available Qualities:* 
 =========================
 ${qualities}
 `;
@@ -95,9 +95,6 @@ ${qualities}
                     const selectedQuality = desc.dllinks.directDownloadLinks[qualityType - 1];
 
                     if (qualityMek.key.remoteJid === from) {
-                        // Send "Uploading..." message
-                        await conn.sendMessage(from, { text: "Uploading..." });
-
                         const downloadLink = await fetchJson(`${api}cinedownload?url=${selectedQuality.link}&apikey=${prabathApi}`);
 
                         // Send the document
@@ -105,11 +102,11 @@ ${qualities}
                             document: { url: downloadLink.data.direct },
                             mimetype: downloadLink.data.mimeType,
                             fileName: downloadLink.data.fileName,
-                            caption: `> Qᴜᴇᴇɴ-ᴢᴀᴢɪᴇ-ᴍᴅ ʙʏ ɴʙᴛ`
+                            caption: `Movie downloaded successfully for quality selection number ${qualityType}.`
                         };
 
                         await conn.sendMessage(from, downloadMessage);
-                       
+                        
                         // Set success reaction
                         await conn.sendMessage(from, { react: { text: '✅', key: qualityMek.key } });
                     }
