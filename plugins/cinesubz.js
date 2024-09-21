@@ -1,5 +1,11 @@
+const { cmd } = require('../command');
+const config = require('../config');
+const { fetchJson } = require('../lib/functions');
+const prabathApi = "6467ad0b29"; // API key || 2 months
+const api = "https://prabath-md-api.up.railway.app/api/"; // Base API link
+
 cmd({
-    pattern: "cinesubz",
+    pattern: "csub",
     alias: ["mv", "moviedl", "mvdl", "cinesub", "cinesubz"],
     desc: "movie",
     category: "download",
@@ -20,15 +26,10 @@ cmd({
         }
 
         const movieList = allMovies.map((app, index) => {
-            return `*${index + 1}.* 🎬 ${app.title}`;
+            return `${index + 1}. 🎬 ${app.title}`;
         }).join("\n");
 
-        const message = `*Cinesubz Movie SEARCH*\n` +
-                        `____________________________\n\n` +
-                        `*Movies Found:*\n\n` +
-                        `${movieList}\n\n` +
-                        `Please reply with the number of the movie you want.`;
-
+        const message = '*Cinesubz Movie SEARCH*\n____________________________\n\n*Movies Found:*\n\n' + movieList;
         const sentMsg = await conn.sendMessage(from, { text: message }, { quoted: mek });
         const messageID = sentMsg.key.id;
 
