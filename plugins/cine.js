@@ -6,6 +6,7 @@ const api = "https://prabath-md-api.up.railway.app/api/"; // Base API link
 
 let pendingRequests = {};
 
+// Pass 'conn' properly in the command definition
 cmd({
     pattern: "csub",
     alias: ["mv", "moviedl", "mvdl", "cinesub", "cinesubz"],
