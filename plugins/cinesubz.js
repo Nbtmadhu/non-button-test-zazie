@@ -1,9 +1,3 @@
-const { cmd } = require('../command');
-const config = require('../config');
-const { fetchJson, sleep } = require('../lib/functions');
-const prabathApi = "6467ad0b29"; // API key || 2 months
-const api = "https://prabath-md-api.up.railway.app/api/"; // Base API link
-
 cmd({
     pattern: "cinesubz",
     alias: ["mv", "moviedl", "mvdl", "cinesub", "cinesubz"],
@@ -11,7 +5,7 @@ cmd({
     category: "download",
     react: "🎬",
     filename: __filename
-}, async (conn, mek, m, { from, quoted, body, isCmd, command, args, q }) => {
+}, async (conn, mek, m, { from, quoted, body, q }) => {
     try {
         if (!q) {
             return await conn.sendMessage(from, { text: "Please provide the name of the movie." }, { quoted: mek });
@@ -26,12 +20,17 @@ cmd({
         }
 
         const movieList = allMovies.map((app, index) => {
-            return `${index + 1}. 🎬 ${app.title}`;
+            return `*${index + 1}.* 🎬 ${app.title}`;
         }).join("\n");
 
-        const message = '*Cinesubz Movie SEARCH*\n____________________________\n\n*Movies Found:*\n\n' + movieList;
+        const message = `*Cinesubz Movie SEARCH*\n` +
+                        `____________________________\n\n` +
+                        `*Movies Found:*\n\n` +
+                        `${movieList}\n\n` +
+                        `Please reply with the number of the movie you want.`;
+
         const sentMsg = await conn.sendMessage(from, { text: message }, { quoted: mek });
-        const messageID = sentMsg.key.id; // Save the message ID for later reference
+        const messageID = sentMsg.key.id;
 
         // Listen for the user's response to select a movie
         conn.ev.on('messages.upsert', async (messageUpdate) => {
@@ -39,12 +38,11 @@ cmd({
             if (!mek.message) return;
 
             const userResponse = mek.message.conversation || mek.message.extendedTextMessage?.text;
-            const userSelectedNumber = parseInt(userResponse); // Convert user response to number
+            const userSelectedNumber = parseInt(userResponse);
 
-            // Check if the message is a reply to the previous message
             const isReplyToSentMsg = mek.message.extendedTextMessage && mek.message.extendedTextMessage.contextInfo.stanzaId === messageID;
 
-            if (isReplyToSentMsg && !isNaN(userSelectedNumber) && userSelectedNumber > 0 && userSelectedNumber <= allMovies.length) {
+            if (isReplyToSentMsg) {
                 const selectedMovie = allMovies[userSelectedNumber - 1];
 
                 const movieDetails = await fetchJson(`${api}cinemovie?url=${selectedMovie.link}&apikey=${prabathApi}`);
@@ -58,23 +56,30 @@ cmd({
                 let url = selectedMovie.link;
                 let imdbRating = desc.moviedata.imdbRating;
                 let qualities = desc.dllinks.directDownloadLinks.map((link, index) => `> ${index + 1}. ${link.quality} (${link.size})`).join("\n");
+                let imageUrl = desc.mainDetails.imageUrl;
 
                 let detailMessage = `
-- Movie: ${movieTitle}
-- Release Date: ${releaseDate}
-- Director: ${directorName}
-- Country: ${country}
-- Duration: ${duration}
-- IMDB Rating: ${imdbRating}
-- Url: ${url}
+🌟 *Movie Details* 🌟
+=========================
+*Title:* ${movieTitle}
+*Release Date:* ${releaseDate}
+*Director:* ${directorName}
+*Country:* ${country}
+*Duration:* ${duration}
+*IMDB Rating:* ${imdbRating}
+*Url:* ${url}
 
 *Available Qualities:* 
-
+=========================
 ${qualities}
 `;
 
-                const detailsMsg = await conn.sendMessage(from, { text: detailMessage }, { quoted: mek });
-                const detailsMessageID = detailsMsg.key.id; // Save the message ID for the quality selection
+                // Send the image with the movie details as the caption
+                await conn.sendMessage(from, {
+                    image: { url: imageUrl },
+                    caption: detailMessage,
+                    footer: "Powered by Cinesubz"
+                }, { quoted: mek });
 
                 // Listen for quality selection
                 conn.ev.on('messages.upsert', async (qualityUpdate) => {
@@ -84,38 +89,28 @@ ${qualities}
                     const qualityType = parseInt(qualityMek.message.conversation || qualityMek.message.extendedTextMessage?.text);
                     const selectedQuality = desc.dllinks.directDownloadLinks[qualityType - 1];
 
-                    if (selectedQuality) {
+                    if (qualityMek.key.remoteJid === from) {
                         await conn.sendMessage(from, { text: "Uploading..." });
 
-                        if (parseSize(selectedQuality.size) > 2) {
-                            return await conn.sendMessage(from, { text: "Max size 2GB, so can't send via WhatsApp." });
-                        } else {
-                            const downloadLink = await fetchJson(`${api}cinedownload?url=${selectedQuality.link}&apikey=${prabathApi}`);
-                            
-                            // Send download message without mentions
-                            const downloadMessage = {
-                                document: { url: downloadLink.data.direct },
-                                mimetype: downloadLink.data.mimeType,
-                                fileName: downloadLink.data.fileName,
-                                caption: `Movie downloaded successfully for quality selection number ${qualityType}.`
-                            };
-                            await conn.sendMessage(from, downloadMessage);
-                        }
-                    } else {
-                        await conn.sendMessage(from, { text: "Invalid quality selection. Type a correct number." });
+                        const downloadLink = await fetchJson(`${api}cinedownload?url=${selectedQuality.link}&apikey=${prabathApi}`);
+
+                        // Send the document
+                        const downloadMessage = {
+                            document: { url: downloadLink.data.direct },
+                            mimetype: downloadLink.data.mimeType,
+                            fileName: downloadLink.data.fileName,
+                            caption: `Movie downloaded successfully for quality selection number ${qualityType}.`
+                        };
+
+                        await conn.sendMessage(from, downloadMessage);
+                        
+                        // Set success reaction
+                        await conn.sendMessage(from, { react: { text: '✅', key: qualityMek.key } });
                     }
                 });
-            } else {
-                await conn.sendMessage(from, { text: "Invalid selection. Type a correct number." });
             }
         });
     } catch (e) {
         console.log(e);
     }
 });
-
-// Utility function to parse size
-function parseSize(sizeStr) {
-    let sizeMatch = sizeStr.match(/^([\d.]+)\s*GB$/);
-    return sizeMatch ? parseFloat(sizeMatch[1]) : 0;
-}
