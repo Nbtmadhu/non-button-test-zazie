@@ -65,7 +65,7 @@ cmd({
 });
 
 // Listener for incoming messages
-conn.ev.on('messages.upsert', async (messageUpdate) => {
+async function handleIncomingMessage(conn, messageUpdate) {
     const mek = messageUpdate.messages[0];
     if (!mek.message) return;
     const messageType = mek.message.conversation || mek.message.extendedTextMessage?.text;
@@ -133,8 +133,12 @@ conn.ev.on('messages.upsert', async (messageUpdate) => {
             delete pendingRequests[from]; // Clear the request after completing
         }
     }
-});
+}
 
+// Bind the message listener to the connection event
+conn.ev.on('messages.upsert', (messageUpdate) => handleIncomingMessage(conn, messageUpdate));
+
+// Utility function to parse file size
 function parseSize(sizeStr) {
     let sizeMatch = sizeStr.match(/^([\d.]+)\s*GB$/);
     return sizeMatch ? parseFloat(sizeMatch[1]) : 0;
