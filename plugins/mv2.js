@@ -19,9 +19,9 @@ cmd({
         const searchData = await fetchJson(`${api}cinesearch?q=${q}&apikey=${prabathApi}`);
         if (!searchData.data || !searchData.data.data.length) return reply("No results found.");
 
-        // Display the search results in a more visually appealing way with emojis and formatting
+        // Display the search results with more visual appeal
         const allMovies = searchData.data.data.map((app, index) => {
-            return `*${index + 1}. ${app.title}*\nYear: ${app.year}`;
+            return `📽️ *${index + 1}. ${app.title}*\n🗓️ Year: ${app.year}\n🔗 [Link](${app.link})\n`;
         });
         const message = `*🎬 Cinesubz Movie Search 🎬*\n\n*Search Results for: ${q}*\n_________________________\n\n${allMovies.join('')}`;
         await conn.sendMessage(from, { text: message }, { quoted: mek });
@@ -66,6 +66,7 @@ cmd({
 ${qualities}
 `;
 
+            // Send movie poster along with details
             await conn.sendMessage(from, { image: { url: posterUrl }, caption: template }, { quoted: mek });
 
             // Listen for user response to select the quality
