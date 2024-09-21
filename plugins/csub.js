@@ -13,10 +13,8 @@ cmd({
     category: "download",
     react: "🎬",
     filename: __filename
-}, async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, isGroup, sender, senderNumber, botNumber2, botNumber, isPreUser, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply }) => {
+}, async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, isGroup, sender, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply }) => {
     try {
-        const msr = (await fetchJson('https://raw.githubusercontent.com/nbt-official/Queen-zazie-md-hard/main/DATABASE/mreply.json')).replyMsg;
-        if (!isPreUser) return await reply(msr.pre_cmd);
         if (!q) {
             return await reply("Please provide the name of the movie.");
         }
@@ -47,7 +45,7 @@ cmd({
 }, async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, isGroup, sender, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply }) => {
     try {
         if (!q) {
-            return reply("Please provide the name of the movie");
+            return reply("Please provide the name of the movie.");
         }
 
         const data = await fetchJson(`${api}cinesearch?q=${q}&apikey=${prabathApi}`);
