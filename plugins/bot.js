@@ -3,7 +3,7 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 
 cmd({
-    pattern: "mx",
+    pattern: "yts",
     alias: ["ytssearch"],
     desc: "Search for movies on YTS",
     category: "search",
@@ -15,7 +15,7 @@ cmd({
             return await conn.sendMessage(from, { text: "Please provide the name of the movie." }, { quoted: mek });
         }
 
-        // Fetch the search results from yts.mx
+        // Fetch the search results from YTS
         const searchUrl = `https://yts.mx/browse-movies/${encodeURIComponent(q)}/all/all/0/latest/0/all`;
         const response = await axios.get(searchUrl);
         const $ = cheerio.load(response.data);
@@ -27,7 +27,7 @@ cmd({
             const year = $(element).find('.browse-movie-year').text();
             const link = $(element).find('.browse-movie-title').attr('href');
             if (title && link) {
-                movies.push({ title, year, link: `https://yts.mx${link}` });
+                movies.push({ title, year, link: `https://yts.mx${link}` }); // Ensure the link is complete
             }
         });
 
@@ -47,8 +47,6 @@ cmd({
             const mek = messageUpdate.messages[0];
             if (!mek.message) return;
             const messageType = mek.message.conversation || mek.message.extendedTextMessage?.text;
-            const from = mek.key.remoteJid;
-            const sender = mek.key.participant || mek.key.remoteJid;
 
             // Check if the message is a reply to the previously sent message
             const isReplyToSentMsg = mek.message.extendedTextMessage && mek.message.extendedTextMessage.contextInfo.stanzaId === messageID;
@@ -58,32 +56,40 @@ cmd({
                 
                 if (userSelectedNumber && userSelectedNumber <= movies.length) {
                     const selectedMovie = movies[userSelectedNumber - 1];
-                    
+                    const selectedMovieLink = selectedMovie.link; // Use the selected movie link
+
                     // Fetch movie details from the movie link
-                    const movieResponse = await axios.get(selectedMovie.link);
-                    const moviePage = cheerio.load(movieResponse.data);
+                    try {
+                        const movieResponse = await axios.get(selectedMovieLink);
+                        const moviePage = cheerio.load(movieResponse.data);
 
-                    // Extract movie details
-                    const description = moviePage('.movie-description').text().trim() || "No description available.";
-                    const qualities = [];
-                    moviePage('.quality').each((index, element) => {
-                        const quality = $(element).text().trim();
-                        if (quality) {
-                            qualities.push(quality);
-                        }
-                    });
+                        // Extract movie details
+                        const description = moviePage('.movie-description').text().trim() || "No description available.";
+                        const qualities = [];
+                        moviePage('.quality').each((index, element) => {
+                            const quality = moviePage(element).text().trim();
+                            if (quality) {
+                                qualities.push(quality);
+                            }
+                        });
 
-                    const detailsMessage = `
+                        const detailsMessage = `
 🌟 *Movie Details* 🌟
 =========================
 *Title:* ${selectedMovie.title}
 *Year:* ${selectedMovie.year}
 *Description:* ${description}
 *Available Qualities:* ${qualities.length ? qualities.join(', ') : "No quality information available."}
+=========================
+🎬 Enjoy your movie!
 `;
 
-                    // Send movie details
-                    await conn.sendMessage(from, { text: detailsMessage }, { quoted: mek });
+                        // Send movie details
+                        await conn.sendMessage(from, { text: detailsMessage }, { quoted: mek });
+                    } catch (err) {
+                        console.log("Error fetching movie details:", err.message);
+                        await conn.sendMessage(from, { text: "Error fetching movie details. Please try again later." }, { quoted: mek });
+                    }
                 } else {
                     await conn.sendMessage(from, { text: "Invalid movie selection. Please try again." }, { quoted: mek });
                 }
