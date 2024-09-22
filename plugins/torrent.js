@@ -20,6 +20,11 @@ cmd({
             return await conn.sendMessage(from, { text: "Please provide the name of the movie." }, { quoted: mek });
         }
 
+        // Clear old state for the user if they start a new search
+        if (userStates[from]) {
+            delete userStates[from];
+        }
+
         // Fetch movie search results
         const searchResponse = await fetchJson(`${apiBaseUrl}list_movies.json?query_term=${encodeURIComponent(q)}`);
         if (!searchResponse || !searchResponse.data || !searchResponse.data.movies) {
@@ -37,7 +42,7 @@ cmd({
         const sentMsg = await conn.sendMessage(from, { text: message }, { quoted: mek });
         const messageID = sentMsg.key.id;
 
-        // Set user state
+        // Set user state for the movie list
         userStates[from] = { movies: allMovies };
 
         // Function to handle movie selection
@@ -49,6 +54,7 @@ cmd({
             const userSelectedNumber = parseInt(userResponse);
             const isReplyToSentMsg = mek.message.extendedTextMessage && mek.message.extendedTextMessage.contextInfo.stanzaId === messageID;
 
+            // Check if the message is replying to the correct movie search and number is valid
             if (isReplyToSentMsg && userSelectedNumber && userSelectedNumber <= allMovies.length) {
                 const selectedMovie = allMovies[userSelectedNumber - 1];
                 const movieDetailsResponse = await fetchJson(`${apiBaseUrl}movie_details.json?movie_id=${selectedMovie.id}`);
