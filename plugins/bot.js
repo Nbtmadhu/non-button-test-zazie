@@ -37,7 +37,11 @@ cmd({
             // Check if the message is a reply to the previously sent message
             const isReplyToSentMsg = mekResponse.message.extendedTextMessage && mekResponse.message.extendedTextMessage.contextInfo.stanzaId === messageID;
 
-            if (isReplyToSentMsg && userSelectedNumber && userSelectedNumber <= movies.length) {
+            if (isReplyToSentMsg) {
+                if (isNaN(userSelectedNumber) || userSelectedNumber < 1 || userSelectedNumber > movies.length) {
+                    return await conn.sendMessage(from, { text: "Invalid movie selection. Please try again." }, { quoted: mek });
+                }
+
                 const selectedMovie = movies[userSelectedNumber - 1];
 
                 // Fetch movie details
@@ -45,21 +49,20 @@ cmd({
                 const moviePage = cheerio.load(movieResponse.data);
 
                 // Extract movie details
-                const title = moviePage('h1').text().trim(); // Adjust selector as needed
-                const year = moviePage('.release-year').text().trim(); // Adjust selector as needed
-                const description = moviePage('.movie-description').text().trim(); // Adjust selector for description
+                const title = moviePage('title').text().trim() || "N/A"; // Adjust selector as needed
+                const year = moviePage('.release-year').text().trim() || "N/A"; // Adjust selector as needed
+                const rating = moviePage('.rating').text().trim() || "N/A"; // Adjust selector as needed
+                const summary = moviePage('.summary').text().trim() || "No summary available."; // Adjust selector for description
+                const language = moviePage('.language').text().trim() || "N/A"; // Adjust selector for language
+                const dateUploaded = moviePage('.date_uploaded').text().trim() || "N/A"; // Adjust selector for date uploaded
                 
-                // Check if description is found
-                if (!description) {
-                    throw new Error("Description not found"); // Trigger the catch block
-                }
-
-                // Extract available qualities
+                // Extract available qualities and their sizes
                 const qualities = [];
                 moviePage('.quality').each((index, element) => {
                     const qualityText = moviePage(element).text().trim();
-                    if (qualityText) {
-                        qualities.push(qualityText);
+                    const sizeText = moviePage(element).siblings('.size').text().trim(); // Adjust selector for size
+                    if (qualityText && sizeText) {
+                        qualities.push(`${qualityText} (${sizeText})`);
                     }
                 });
 
@@ -68,7 +71,10 @@ cmd({
 =========================
 *Title:* ${title || "N/A"}
 *Year:* ${year || "N/A"}
-*Description:* ${description || "No description available."}
+*Rating:* ${rating || "N/A"}
+*Summary:* ${summary || "N/A"}
+*Language:* ${language || "N/A"}
+*Date Uploaded:* ${dateUploaded || "N/A"}
 *Available Qualities:* ${qualities.length ? qualities.join(', ') : "No quality information available."}
 =========================
 🎬 Enjoy your movie!
@@ -76,16 +82,10 @@ cmd({
 
                 // Send movie details
                 await conn.sendMessage(from, { text: detailsMessage }, { quoted: mek });
-            } else {
-                await conn.sendMessage(from, { text: "Invalid movie selection. Please try again." }, { quoted: mek });
             }
         });
     } catch (err) {
         console.error("Error fetching movie details:", err.message);
-        if (err.message === "Description not found") {
-            await conn.sendMessage(from, { text: "Sorry, I can't find the description of the movie." }, { quoted: mek });
-        } else {
-            await conn.sendMessage(from, { text: "Error fetching movie details. Please try again later." }, { quoted: mek });
-        }
+        await conn.sendMessage(from, { text: "Error fetching movie details. Please try again later." }, { quoted: mek });
     }
 });
