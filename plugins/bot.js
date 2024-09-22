@@ -2,6 +2,26 @@ const { cmd } = require('../command'); // Ensure this matches your command handl
 const axios = require('axios');
 const cheerio = require('cheerio');
 
+async function cinesubzSearch(query) {
+    const URL = `https://cinesubz.co/?s=${encodeURIComponent(query)}`;
+    return new Promise((resolve, reject) => {
+        axios.get(URL)
+            .then((response) => {
+                const $ = cheerio.load(response.data);
+                let titles = [];
+                $('.post').each((index, element) => {
+                    const title = $(element).find('.entry-title a').text();
+                    titles.push(title);
+                });
+                resolve(titles);
+            })
+            .catch((error) => {
+                reject({ status: false, error: error.message });
+            });
+    });
+}
+
+// Command to search Cinesubz
 cmd({
     pattern: "csubzsearch",
     alias: ["csubz", "searchmovie"],
@@ -15,27 +35,18 @@ cmd({
             return await conn.sendMessage(from, { text: "Please provide the name of the movie." }, { quoted: mek });
         }
 
-        // Scrape Cinesubz for movie search results
-        const searchUrl = `https://cinesubz.co/?s=${encodeURIComponent(q)}`;
-        const { data } = await axios.get(searchUrl);
-        const $ = cheerio.load(data);
+        const titles = await cinesubzSearch(q);
 
-        let movies = [];
-        $('.post').each((index, element) => {
-            const title = $(element).find('.entry-title a').text();
-            movies.push(title);
-        });
-
-        if (movies.length === 0) {
+        if (titles.length === 0) {
             return await conn.sendMessage(from, { text: "No movies found." }, { quoted: mek });
         }
 
-        const movieList = movies.map((title, index) => `*${index + 1}.* ${title}`).join("\n");
+        const movieList = titles.map((title, index) => `*${index + 1}.* ${title}`).join("\n");
         const message = `*Cinesubz Movie Search*\n\nMovies Found:\n${movieList}`;
 
         await conn.sendMessage(from, { text: message }, { quoted: mek });
-    } catch (e) {
-        console.log("Error: ", e.message);
-        return await conn.sendMessage(from, { text: `An error occurred: ${e.message}` }, { quoted: mek });
+    } catch (error) {
+        console.log("Error: ", error);
+        return await conn.sendMessage(from, { text: `An error occurred: ${error.message}` }, { quoted: mek });
     }
 });
