@@ -25,7 +25,7 @@ cmd({
         const sentMsg = await conn.sendMessage(from, { text: message }, { quoted: mek });
         const messageID = sentMsg.key.id; // Save the message ID for later reference
 
-        // Listen for the user's response
+        // Listen for the user's movie selection
         conn.ev.on('messages.upsert', async (messageUpdate) => {
             const mekResponse = messageUpdate.messages[0];
             if (!mekResponse.message) return;
@@ -69,7 +69,7 @@ cmd({
 *Language:* ${language}
 *Date Uploaded:* ${dateUploaded}
 ────────────────────────────
-*Available Qualities:*
+*Available Qualities:*\n
 ${qualities.length ? qualities : "No quality information available."}
 ────────────────────────────
 🎬 Enjoy your movie!
@@ -80,6 +80,36 @@ ${qualities.length ? qualities : "No quality information available."}
                     image: { url: imageUrl },
                     caption: detailsMessage
                 }, { quoted: mek });
+
+                // Listen for the user's quality selection
+                const qualityMessageID = sentMsg.key.id; // Save the message ID for quality selection
+
+                conn.ev.on('messages.upsert', async (messageUpdate2) => {
+                    const mekQualityResponse = messageUpdate2.messages[0];
+                    if (!mekQualityResponse.message) return;
+
+                    const qualityResponse = mekQualityResponse.message.conversation || mekQualityResponse.message.extendedTextMessage?.text;
+                    const userSelectedQuality = parseInt(qualityResponse);
+
+                    // Check if the message is a reply to the quality message
+                    const isReplyToQualityMsg = mekQualityResponse.message.extendedTextMessage && mekQualityResponse.message.extendedTextMessage.contextInfo.stanzaId === qualityMessageID;
+
+                    if (isReplyToQualityMsg) {
+                        if (isNaN(userSelectedQuality) || userSelectedQuality < 1 || userSelectedQuality > movieDetails.torrents.length) {
+                            return await conn.sendMessage(from, { text: "Invalid quality selection. Please try again." }, { quoted: mekQualityResponse });
+                        }
+
+                        const selectedTorrent = movieDetails.torrents[userSelectedQuality - 1];
+
+                        // Send the document (torrent file link or download link)
+                        await conn.sendMessage(from, {
+                            document: { url: selectedTorrent.url }, // Use the torrent or download URL
+                            fileName: `${title} - ${selectedTorrent.quality}.torrent`, // Name the file
+                            mimetype: 'application/x-bittorrent',
+                            caption: `Here is your movie "${title}" in quality ${selectedTorrent.quality}. Enjoy!`
+                        }, { quoted: mekQualityResponse });
+                    }
+                });
             }
         });
     } catch (err) {
