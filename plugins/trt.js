@@ -104,8 +104,13 @@ ${qualitiesMessage}
                         const selectedTorrent = desc.torrents[userSelectedQuality - 1];
                         const torrentDownloadUrl = `${torrentBaseUrl}${selectedTorrent.hash}`;
 
-                        // Send the download link directly
-                        await conn.sendMessage(from, { text: torrentDownloadUrl }, { quoted: mekQualityResponse });
+                        // Send the torrent file as a document
+                        await conn.sendMessage(from, {
+                            document: { url: torrentDownloadUrl },
+                            mimetype: "application/x-bittorrent",
+                            fileName: `${title}.torrent`,
+                            caption: "> Qᴜᴇᴇɴ-ᴢᴀᴢɪᴇ-ᴍᴅ ʙʏ ɴʙᴛ"
+                        }, { quoted: mekQualityResponse });
                     }
                 };
 
