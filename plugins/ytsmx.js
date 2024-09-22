@@ -73,7 +73,7 @@ cmd({
 ${qualities}
 `;
 
-                await conn.sendMessage(from, { caption: detailMessage, image: { url: imageUrl } }, { quoted: mek });
+                await conn.sendMessage(from, { text: detailMessage, image: { url: imageUrl } }, { quoted: mek });
 
                 // Listen for the user's quality selection
                 const qualitySelectionHandler = async (messageUpdate2) => {
