@@ -49,20 +49,20 @@ cmd({
                 const moviePage = cheerio.load(movieResponse.data);
 
                 // Extract movie details
-                const title = moviePage('title').text().trim() || "N/A"; // Adjust selector as needed
-                const year = moviePage('.release-year').text().trim() || "N/A"; // Adjust selector as needed
-                const rating = moviePage('.rating').text().trim() || "N/A"; // Adjust selector as needed
-                const summary = moviePage('.summary').text().trim() || "No summary available."; // Adjust selector for description
-                const language = moviePage('.language').text().trim() || "N/A"; // Adjust selector for language
-                const dateUploaded = moviePage('.date_uploaded').text().trim() || "N/A"; // Adjust selector for date uploaded
-                
-                // Extract available qualities and their sizes
+                const title = moviePage('title').text().trim(); // Adjust selector as needed
+                const year = moviePage('year').text().trim(); // Adjust selector as needed
+                const rating = moviePage('rating').text().trim() || "N/A"; // Adjust selector as needed
+                const summary = moviePage('summary').text().trim() || "No summary available."; // Adjust selector for description
+                const language = moviePage('language').text().trim() || "N/A"; // Adjust selector for language
+                const dateUploaded = moviePage('data_uploaded').text().trim() || "N/A"; // Adjust selector for date uploaded
+                const imageUrl = selectedMovie.large_cover_image; // Get the movie image URL
+
+                // Extract available qualities
                 const qualities = [];
-                moviePage('.quality').each((index, element) => {
+                moviePage('quality').each((index, element) => {
                     const qualityText = moviePage(element).text().trim();
-                    const sizeText = moviePage(element).siblings('.size').text().trim(); // Adjust selector for size
-                    if (qualityText && sizeText) {
-                        qualities.push(`${qualityText} (${sizeText})`);
+                    if (qualityText) {
+                        qualities.push(qualityText);
                     }
                 });
 
@@ -72,16 +72,19 @@ cmd({
 *Title:* ${title || "N/A"}
 *Year:* ${year || "N/A"}
 *Rating:* ${rating || "N/A"}
-*Summary:* ${summary || "N/A"}
-*Language:* ${language || "N/A"}
-*Date Uploaded:* ${dateUploaded || "N/A"}
+*Summary:* ${summary}
+*Language:* ${language}
+*Date Uploaded:* ${dateUploaded}
 *Available Qualities:* ${qualities.length ? qualities.join(', ') : "No quality information available."}
 =========================
 🎬 Enjoy your movie!
 `;
 
-                // Send movie details
-                await conn.sendMessage(from, { text: detailsMessage }, { quoted: mek });
+                // Send movie details with image
+                await conn.sendMessage(from, {
+                    image: { url: imageUrl },
+                    caption: detailsMessage
+                }, { quoted: mek });
             }
         });
     } catch (err) {
