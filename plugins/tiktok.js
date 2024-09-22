@@ -8,40 +8,45 @@ cmd({
     pattern: "tiktok",
     alias: ["tt"],
     react: "🎥",
-    desc: "download tt videos",
+    desc: "Download TikTok videos",
     category: "download",
     filename: __filename
 },
 async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, isGroup, sender, senderNumber, botNumber2, botNumber, pushname, isMe, isOwner, groupMetadata, groupName, participants, groupAdmins, isBotAdmins, isAdmins, reply }) => {
     try {
         if (!q || !q.startsWith("https://")) return reply("*Please provide a valid TikTok URL ❌*");
-        m.react('👀');
+        m.react('⬇️');
 
         // Fetch data from the API
         let response = await fetchJson(`${baseUrl}?url=${q}&apikey=RNbsFYOe`);
         
-        if (!response.success) {
+        if (!response.status) {
             return reply(`*Error:* ${response.message}`);
         }
 
-        let data = response.data; // Access the data object
+        let data = response.result; // Access the result object
+        let sizeInMB = (data.size / (1024 * 1024)).toFixed(2); // Convert size to MB
+        let wmSizeInMB = (data.wm_size / (1024 * 1024)).toFixed(2); // Convert watermark size to MB
+
+        // Use the correct fields from the API response
         let desc = `
 *✘🎟️ TikTok Download 🎟️✘*
 
 *Title:* ${data.title}
 *Region:* ${data.region}
-*Size:* ${data.size || 'Undefined'}
-*Duration:* ${data.duration || 'Undefined'}
+*Size:* ${sizeInMB} MB
+*Watermarked Size:* ${wmSizeInMB} MB
+*Duration:* ${data.duration} seconds
 
 🔢 *Select an option:*
 1️⃣ *Video Options:*
-   1.1 | 📼 No Watermark
-   1.2 | 🎟️ With Watermark
+   1.1 | 📼 No Watermark: ${data.play}
+   1.2 | 🎟️ With Watermark: ${data.wmplay}
 2️⃣ *Audio Options:*
-   2.1 | 🎶 Audio File
-   2.2 | 📁 Document File
+   2.1 | 🎶 Audio File: ${data.music}
+   2.2 | 📁 Document File: ${data.music}
 
-*URL:* ${q}
+*Cover Image:* ${data.cover}
 `;
 
         const sentMsg = await conn.sendMessage(from, { image: { url: data.cover }, caption: desc }, { quoted: mek });
@@ -61,21 +66,18 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, isGroup, sen
                 // React to the user's reply
                 await conn.sendMessage(from, { react: { text: '⬇️', key: mek.key } });
 
-                // React to the upload (sending the file)
-                await conn.sendMessage(from, { react: { text: '⬆️', key: mek.key } });
-
                 if (messageType === '1.1') {
                     // Handle option 1.1 (no watermark)
-                    await conn.sendMessage(from, { video: { url: data.no_wm }, mimetype: "video/mp4", caption: `> NO WATERMARK` }, { quoted: mek });
+                    await conn.sendMessage(from, { video: { url: data.play }, mimetype: "video/mp4", caption: `> NO WATERMARK` }, { quoted: mek });
                 } else if (messageType === '1.2') {
                     // Handle option 1.2 (with watermark)
-                    await conn.sendMessage(from, { video: { url: data.wm }, mimetype: "video/mp4", caption: `> WITH WATERMARK` }, { quoted: mek });
+                    await conn.sendMessage(from, { video: { url: data.wmplay }, mimetype: "video/mp4", caption: `> WITH WATERMARK` }, { quoted: mek });
                 } else if (messageType === '2.1') {
                     // Handle option 2.1 (audio file)
-                    await conn.sendMessage(from, { audio: { url: data.audio }, mimetype: "audio/mpeg" }, { quoted: mek });
+                    await conn.sendMessage(from, { audio: { url: data.music }, mimetype: "audio/mpeg" }, { quoted: mek });
                 } else if (messageType === '2.2') {
                     // Handle option 2.2 (audio document)
-                    await conn.sendMessage(from, { document: { url: data.audio }, mimetype: "audio/mpeg" }, { quoted: mek });
+                    await conn.sendMessage(from, { document: { url: data.music }, mimetype: "audio/mpeg" }, { quoted: mek });
                 }
 
                 // React to the successful completion of the task
@@ -88,3 +90,4 @@ async (conn, mek, m, { from, quoted, body, isCmd, command, args, q, isGroup, sen
         reply(`${e}`);
     }
 });
+l
