@@ -35,7 +35,7 @@ cmd({
         const messageID = sentMsg.key.id;
 
         // Listen for the user's movie selection
-        conn.ev.on('messages.upsert', async (messageUpdate) => {
+        const movieSelectionHandler = async (messageUpdate) => {
             const mek = messageUpdate.messages[0];
             if (!mek.message) return;
 
@@ -43,7 +43,7 @@ cmd({
             const userSelectedNumber = parseInt(userResponse);
             const isReplyToSentMsg = mek.message.extendedTextMessage && mek.message.extendedTextMessage.contextInfo.stanzaId === messageID;
 
-            if (isReplyToSentMsg && userSelectedNumber && userSelectedNumber <= allMovies.length && userSelectedNumber > 0) {
+            if (isReplyToSentMsg && userSelectedNumber && userSelectedNumber <= allMovies.length) {
                 const selectedMovie = allMovies[userSelectedNumber - 1];
 
                 // Fetch movie details
@@ -59,7 +59,6 @@ cmd({
                 const summary = desc.summary || "Description not available.";
                 const language = desc.language || "N/A";
                 const dateUploaded = desc.date_uploaded || "N/A";
-                const imageUrl = desc.medium_cover_image;
 
                 let qualities = desc.torrents.map((torrent, index) => `> ${index + 1}. ${torrent.quality}`).join("\n");
 
@@ -78,37 +77,49 @@ cmd({
 ${qualities}
 `;
 
-                await conn.sendMessage(from, { 
-                    image: { url: imageUrl }, 
-                    caption: detailMessage 
-                }, { quoted: mek });
+                const sentDetailMsg = await conn.sendMessage(from, { text: detailMessage }, { quoted: mek });
+                const detailMessageID = sentDetailMsg.key.id;
 
                 // Listen for the user's quality selection
-                conn.ev.on('messages.upsert', async (messageUpdate2) => {
+                const qualitySelectionHandler = async (messageUpdate2) => {
                     const mekQualityResponse = messageUpdate2.messages[0];
                     if (!mekQualityResponse.message) return;
 
                     const qualityResponse = mekQualityResponse.message.conversation || mekQualityResponse.message.extendedTextMessage?.text;
                     const userSelectedQuality = parseInt(qualityResponse);
-                    const isReplyToQualityMsg = mekQualityResponse.message.extendedTextMessage && mekQualityResponse.message.extendedTextMessage.contextInfo.stanzaId === messageID;
+                    const isReplyToQualityMsg = mekQualityResponse.message.extendedTextMessage && mekQualityResponse.message.extendedTextMessage.contextInfo.stanzaId === detailMessageID;
 
-                    if (isReplyToQualityMsg && userSelectedQuality && userSelectedQuality <= desc.torrents.length && userSelectedQuality > 0) {
+                    if (isReplyToQualityMsg && userSelectedQuality && userSelectedQuality <= desc.torrents.length) {
                         const selectedTorrent = desc.torrents[userSelectedQuality - 1];
 
                         // Construct the torrent download URL
                         const torrentDownloadUrl = `${torrentBaseUrl}${selectedTorrent.hash}`;
 
-                        // Send the document (torrent file link)
+                        // Send the download link
                         await conn.sendMessage(from, {
-                            document: { url: torrentDownloadUrl },
-                            fileName: `${title} - ${selectedTorrent.quality}.torrent`,
-                            mimetype: 'application/x-bittorrent',
-                            caption: `Here is your movie "${title}" in quality ${selectedTorrent.quality}. Enjoy!`
+                            text: `Here is your movie "${title}" in quality ${selectedTorrent.quality}: ${torrentDownloadUrl}`,
                         }, { quoted: mekQualityResponse });
+
+                        // Remove the event listener after handling the response
+                        conn.ev.removeListener('messages.upsert', qualitySelectionHandler);
+                    } else {
+                        await conn.sendMessage(from, { text: "Invalid quality selection. Please try again." }, { quoted: mekQualityResponse });
                     }
-                });
+                };
+
+                // Add the event listener for quality selection
+                conn.ev.on('messages.upsert', qualitySelectionHandler);
+
+                // Remove the event listener for movie selection after handling the response
+                conn.ev.removeListener('messages.upsert', movieSelectionHandler);
+            } else {
+                await conn.sendMessage(from, { text: "Invalid movie selection. Please try again." }, { quoted: mek });
             }
-        });
+        };
+
+        // Add the event listener for movie selection
+        conn.ev.on('messages.upsert', movieSelectionHandler);
+
     } catch (e) {
         console.log("Error: ", e.message);
         return await conn.sendMessage(from, { text: `An error occurred: ${e.message}` }, { quoted: mek });
