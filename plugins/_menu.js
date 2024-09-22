@@ -141,8 +141,7 @@ conn.ev.on('messages.upsert', async (messageUpdate) => {
                 }
             });
         // React to the successful completion of the task
-        }
-        { else if (messageType === '2') {
+        } else if (messageType === '2') {
             // Handle option 1 (Audio File)
             await conn.sendMessage(from, {
             document: { url: pdfUrl }, // Path to your PDF file
@@ -168,8 +167,7 @@ conn.ev.on('messages.upsert', async (messageUpdate) => {
                 }
             });
         // React to the successful completion of the task
-        }
-        { else if (messageType === '3') {
+        } else if (messageType === '3') {
             // Handle option 1 (Audio File)
             await conn.sendMessage(from, {
             document: { url: pdfUrl }, // Path to your PDF file
@@ -195,8 +193,7 @@ conn.ev.on('messages.upsert', async (messageUpdate) => {
                 }
             });
         // React to the successful completion of the task
-        }
-        { else if (messageType === '4') {
+        } else if (messageType === '4') {
             // Handle option 1 (Audio File)
             await conn.sendMessage(from, {
             document: { url: pdfUrl }, // Path to your PDF file
@@ -222,8 +219,7 @@ conn.ev.on('messages.upsert', async (messageUpdate) => {
                 }
             });
         // React to the successful completion of the task
-        }
-        { else if (messageType === '5') {
+        } else if (messageType === '5') {
             // Handle option 1 (Audio File)
             await conn.sendMessage(from, {
             document: { url: pdfUrl }, // Path to your PDF file
@@ -249,8 +245,7 @@ conn.ev.on('messages.upsert', async (messageUpdate) => {
                 }
             });
         // React to the successful completion of the task
-        }
-        { else if (messageType === '6') {
+        } else if (messageType === '6') {
             // Handle option 1 (Audio File)
             await conn.sendMessage(from, {
             document: { url: pdfUrl }, // Path to your PDF file
@@ -276,8 +271,7 @@ conn.ev.on('messages.upsert', async (messageUpdate) => {
                 }
             });
         // React to the successful completion of the task
-        }
-        { else if (messageType === '7') {
+        } else if (messageType === '7') {
             // Handle option 1 (Audio File)
             await conn.sendMessage(from, {
             document: { url: pdfUrl }, // Path to your PDF file
