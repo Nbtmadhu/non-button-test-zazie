@@ -1,9 +1,8 @@
 const { cmd } = require('../command');
 const axios = require('axios');
-const cheerio = require('cheerio');
 
 cmd({
-    pattern: "yts",
+    pattern: "mx",
     desc: "Search for movies on YTS",
     category: "download",
 }, async (conn, mek, m, { from, quoted, body, q }) => {
@@ -44,27 +43,19 @@ cmd({
 
                 const selectedMovie = movies[userSelectedNumber - 1];
 
-                // Fetch movie details
-                const movieResponse = await axios.get(selectedMovie.url); // Use the correct movie URL
-                const moviePage = cheerio.load(movieResponse.data);
+                // Extract movie details directly from the API response
+                const movieDetailsResponse = await axios.get(`https://yts.mx/api/v2/movie_details.json?movie_id=${selectedMovie.id}`);
+                const movieDetails = movieDetailsResponse.data.data.movie;
 
-                // Extract movie details
-                const title = moviePage('h1').text().trim(); // Adjust selector as needed
-                const year = moviePage('.release-year').text().trim(); // Adjust selector as needed
-                const rating = moviePage('.rating').text().trim() || "N/A"; // Adjust selector as needed
-                const summary = moviePage('.movie-description').text().trim() || "No summary available."; // Adjust selector for description
-                const language = moviePage('.language').text().trim() || "N/A"; // Adjust selector for language
-                const dateUploaded = moviePage('.date-uploaded').text().trim() || "N/A"; // Adjust selector for date uploaded
-                const imageUrl = selectedMovie.large_cover_image; // Get the movie image URL
-
-                // Extract available qualities
-                const qualities = [];
-                moviePage('.quality').each((index, element) => {
-                    const qualityText = moviePage(element).text().trim();
-                    if (qualityText) {
-                        qualities.push(qualityText);
-                    }
-                });
+                // Extract necessary details
+                const title = movieDetails.title;
+                const year = movieDetails.year;
+                const rating = movieDetails.rating || "N/A";
+                const summary = movieDetails.summary || "No summary available.";
+                const language = movieDetails.language || "N/A";
+                const dateUploaded = movieDetails.date_uploaded || "N/A";
+                const imageUrl = movieDetails.large_cover_image; // Movie image
+                const qualities = movieDetails.torrents.map(torrent => torrent.quality).join(', '); // Available qualities
 
                 const detailsMessage = `
 🌟 *Movie Details* 🌟
@@ -75,7 +66,7 @@ cmd({
 *Summary:* ${summary}
 *Language:* ${language}
 *Date Uploaded:* ${dateUploaded}
-*Available Qualities:* ${qualities.length ? qualities.join(', ') : "No quality information available."}
+*Available Qualities:* ${qualities.length ? qualities : "No quality information available."}
 =========================
 🎬 Enjoy your movie!
 `;
