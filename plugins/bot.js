@@ -49,17 +49,17 @@ cmd({
                 const moviePage = cheerio.load(movieResponse.data);
 
                 // Extract movie details
-                const title = moviePage('title').text().trim(); // Adjust selector as needed
-                const year = moviePage('year').text().trim(); // Adjust selector as needed
-                const rating = moviePage('rating').text().trim() || "N/A"; // Adjust selector as needed
-                const summary = moviePage('summary').text().trim() || "No summary available."; // Adjust selector for description
-                const language = moviePage('language').text().trim() || "N/A"; // Adjust selector for language
-                const dateUploaded = moviePage('data_uploaded').text().trim() || "N/A"; // Adjust selector for date uploaded
+                const title = moviePage('h1').text().trim(); // Adjust selector as needed
+                const year = moviePage('.release-year').text().trim(); // Adjust selector as needed
+                const rating = moviePage('.rating').text().trim() || "N/A"; // Adjust selector as needed
+                const summary = moviePage('.movie-description').text().trim() || "No summary available."; // Adjust selector for description
+                const language = moviePage('.language').text().trim() || "N/A"; // Adjust selector for language
+                const dateUploaded = moviePage('.date-uploaded').text().trim() || "N/A"; // Adjust selector for date uploaded
                 const imageUrl = selectedMovie.large_cover_image; // Get the movie image URL
 
                 // Extract available qualities
                 const qualities = [];
-                moviePage('quality').each((index, element) => {
+                moviePage('.quality').each((index, element) => {
                     const qualityText = moviePage(element).text().trim();
                     if (qualityText) {
                         qualities.push(qualityText);
