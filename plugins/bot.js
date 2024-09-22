@@ -55,19 +55,23 @@ cmd({
                 const language = movieDetails.language || "N/A";
                 const dateUploaded = movieDetails.date_uploaded || "N/A";
                 const imageUrl = movieDetails.large_cover_image; // Movie image
-                const qualities = movieDetails.torrents.map(torrent => torrent.quality).join(', '); // Available qualities
+
+                // Extract available qualities with sizes
+                const qualities = movieDetails.torrents.map((torrent, index) => `> ${index + 1}. ${torrent.quality} (${torrent.size})`).join('\n'); // Formatted qualities
 
                 const detailsMessage = `
-🌟 *Movie Details* 🌟
-=========================
+🎥 *Movie Details* 🎥
+────────────────────────────
 *Title:* ${title || "N/A"}
 *Year:* ${year || "N/A"}
 *Rating:* ${rating || "N/A"}
 *Summary:* ${summary}
 *Language:* ${language}
 *Date Uploaded:* ${dateUploaded}
-*Available Qualities:* ${qualities.length ? qualities : "No quality information available."}
-=========================
+────────────────────────────
+*Available Qualities:*
+${qualities.length ? qualities : "No quality information available."}
+────────────────────────────
 🎬 Enjoy your movie!
 `;
 
