@@ -8,11 +8,11 @@ const torrentBaseUrl = "https://yts.mx/torrent/download/";
 const userStates = {};
 
 cmd({
-    pattern: "trt",
+    pattern: "ytsdl",
     alias: ["moviedl"],
     desc: "Download movie",
     category: "download",
-    react: "⚃",
+    react: "🎬",
     filename: __filename
 }, async (conn, mek, m, { from, quoted, body, q }) => {
     try {
@@ -106,10 +106,6 @@ ${qualitiesMessage}
 
                         // Send the download link directly
                         await conn.sendMessage(from, { text: torrentDownloadUrl }, { quoted: mekQualityResponse });
-
-                        // Clean up the state
-                        delete userStates[from];
-                        conn.ev.removeListener('messages.upsert', qualitySelectionHandler);
                     }
                 };
 
