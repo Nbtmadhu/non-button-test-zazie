@@ -4,6 +4,9 @@ const { fetchJson } = require('../lib/functions');
 const apiBaseUrl = "https://yts.mx/api/v2/";
 const torrentBaseUrl = "https://yts.mx/torrent/download/";
 
+// Store user states
+const userStates = {};
+
 cmd({
     pattern: "ytsmx",
     alias: ["moviedl"],
@@ -34,8 +37,11 @@ cmd({
         const sentMsg = await conn.sendMessage(from, { text: message }, { quoted: mek });
         const messageID = sentMsg.key.id;
 
+        // Set user state
+        userStates[from] = { movies: allMovies };
+
         // Listen for the user's movie selection
-        conn.ev.on('messages.upsert', async (messageUpdate) => {
+        const movieSelectionHandler = async (messageUpdate) => {
             const mek = messageUpdate.messages[0];
             if (!mek.message) return;
 
@@ -45,8 +51,6 @@ cmd({
 
             if (isReplyToSentMsg && userSelectedNumber && userSelectedNumber <= allMovies.length) {
                 const selectedMovie = allMovies[userSelectedNumber - 1];
-
-                // Fetch movie details
                 const movieDetailsResponse = await fetchJson(`${apiBaseUrl}movie_details.json?movie_id=${selectedMovie.id}`);
                 if (!movieDetailsResponse || !movieDetailsResponse.data || !movieDetailsResponse.data.movie) {
                     return await conn.sendMessage(from, { text: "Error fetching movie details." }, { quoted: mek });
@@ -56,24 +60,27 @@ cmd({
                 const title = desc.title;
                 const imageUrl = desc.large_cover_image;
 
-                // Combine movie details and available qualities into one message
-                let qualities = desc.torrents.map((torrent, index) => `> ${index + 1}. ${torrent.quality}`).join("\n");
-                const detailMessage = `
-🌟 *Movie Details* 🌟
-=========================
-*Title:* ${title}
-*Year:* ${desc.year}
-*Rating:* ${desc.rating}
-*Summary:* ${desc.summary || "Description not available."}
-*Language:* ${desc.language || "N/A"}
-*Date Uploaded:* ${desc.date_uploaded || "N/A"}
+                let qualitiesMessage = desc.torrents.length > 0 
+                    ? desc.torrents.map((torrent, index) => `_${index + 1}_ • ${torrent.quality}`).join("\n") 
+                    : "No qualities available.";
 
-*Available Qualities:* 
-=========================
-${qualities}
-`;
+                let detailMessage = `
+*✘⚃YTS.MX DOWNLOADER⚃✘*
 
-                await conn.sendMessage(from, { text: detailMessage, image: { url: imageUrl } }, { quoted: mek });
+> *♠ ᴛɪᴛʟᴇ*: ${title}
+> *👀 ʏᴇᴀʀ:* ${desc.year}
+> *🌟 ʀᴀᴛɪɴʜ:* ${desc.rating}
+> *🌀 ꜱᴜᴍᴍᴀʀʏ:* ${desc.summary || "Description not available."}
+> *🇱🇰 ʟᴀɴɢᴜᴀɢᴇ:* ${desc.language || "N/A"}
+> *⏱️ ᴅᴀᴛᴇ ᴜᴘʟᴏᴀᴅᴇᴅ:* ${desc.date_uploaded || "N/A"}
+
+*📥 Available Qualities:*
+${qualitiesMessage}
+`
+                await conn.sendMessage(from, { caption: detailMessage, image: { url: imageUrl } }, { quoted: mek });
+
+                // Store current movie details in user state
+                userStates[from].currentMovie = desc;
 
                 // Listen for the user's quality selection
                 const qualitySelectionHandler = async (messageUpdate2) => {
@@ -82,26 +89,29 @@ ${qualities}
 
                     const qualityResponse = mekQualityResponse.message.conversation || mekQualityResponse.message.extendedTextMessage?.text;
                     const userSelectedQuality = parseInt(qualityResponse);
-                    const isReplyToQualityMsg = mekQualityResponse.message.extendedTextMessage && mekQualityResponse.message.extendedTextMessage.contextInfo.stanzaId === sentMsg.key.id;
 
-                    if (isReplyToQualityMsg && userSelectedQuality && userSelectedQuality <= desc.torrents.length) {
+                    if (userSelectedQuality && userSelectedQuality <= desc.torrents.length) {
                         const selectedTorrent = desc.torrents[userSelectedQuality - 1];
-
-                        // Construct the torrent download URL
                         const torrentDownloadUrl = `${torrentBaseUrl}${selectedTorrent.hash}`;
 
                         // Send the download link directly
                         await conn.sendMessage(from, { text: torrentDownloadUrl }, { quoted: mekQualityResponse });
 
-                        // Remove the event listener after handling the response
+                        // Clean up the state
+                        delete userStates[from];
                         conn.ev.removeListener('messages.upsert', qualitySelectionHandler);
                     }
                 };
 
                 // Add the event listener for quality selection
                 conn.ev.on('messages.upsert', qualitySelectionHandler);
+                conn.ev.removeListener('messages.upsert', movieSelectionHandler);
             }
-        });
+        };
+
+        // Add the event listener for movie selection
+        conn.ev.on('messages.upsert', movieSelectionHandler);
+
     } catch (e) {
         console.log("Error: ", e.message);
         return await conn.sendMessage(from, { text: `An error occurred: ${e.message}` }, { quoted: mek });
