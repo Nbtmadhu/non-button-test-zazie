@@ -4,9 +4,9 @@ const { cmd, commands } = require('../command');
 
 // Command handler for searching cartoons
 cmd({
-    pattern: "nbt",
+    pattern: "ginisisila",
     react: '📑',
-    category: "search",
+    category: "download",
     desc: "Scrape cartoon episodes",
     filename: __filename
 }, async (conn, m, mek, { from, q, isDev, reply }) => {
@@ -49,7 +49,7 @@ cmd({
         });
 
         // Send the compiled information
-        const sentMsg = await conn.sendMessage(from, { text: info }, { quoted: mek });
+        const sentMsg = await conn.sendMessage(from,{{ text: info }, { quoted: mek });
         const messageID = sentMsg.key.id; // Save the message ID for later reference
 
         // Listen for the user's response
@@ -67,7 +67,7 @@ cmd({
                     const selectedEpisode = episodes[selectedNumber - 1];
 
                     // Send episode details with image first
-                    const episodeInfo = `*${selectedEpisode.title}*\n🗓️ Posted: ${selectedEpisode.postedTime}\n🔗 [Watch Episode](${selectedEpisode.episodeLink})`;
+                    const episodeInfo = `*🪄 ɴᴀᴍᴇ:-* ${selectedEpisode.title}\n⏳ *ᴅᴀᴛᴇ:-* ${selectedEpisode.postedTime}\n📎 *ᴇᴘɪꜱᴏᴅᴇ ʟɪɴᴋ*:- ${selectedEpisode.episodeLink}\n\n☘ *We are uploading the Movie/Episode you requested.*`;
                     const imageMessage = {
                         image: { url: selectedEpisode.imageUrl },
                         caption: episodeInfo
@@ -94,8 +94,8 @@ cmd({
                                 await conn.sendMessage(from, {
                                     document: { url: downloadUrl },
                                     mimetype: "video/mp4",
-                                    fileName: `${selectedEpisode.title}.mp4`,
-                                    caption: `Here is the episode for *${selectedEpisode.title}*`
+                                    fileName: `${selectedEpisode.title} [ 480P ].mp4`,
+                                    caption: `> 🎬 ${selectedEpisode.title}\n\n> Qᴜᴇᴇɴ-ᴢᴀᴢɪᴇ-ᴍᴅ ʙʏ ɴʙᴛ`
                                 }, { quoted: mek });
                             } else {
                                 await reply('Failed to retrieve the download link for this episode.');
