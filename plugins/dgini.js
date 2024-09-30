@@ -1,7 +1,7 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 const { cmd, commands } = require('../command');
-const { GDriveDl } = require('api-dylux'); // Importing the GDriveDl function from the package
+const fg = require('api-dylux'); // Importing the GDriveDl function from the package
 
 // Command handler for searching cartoons
 cmd({
@@ -90,8 +90,11 @@ cmd({
                             await conn.sendMessage(from, imageMessage, { quoted: mek });
 
                             // Send the video/audio link as a document using the GDriveDl URL
+
+                               const data = fg.GDriveDl(downloadUrl)
+                            
                             await conn.sendMessage(from, {
-                                document: { url: downloadUrl },
+                                document: { url: data.downloadUrl },
                                 mimetype: "video/mp4", // Adjust this according to the actual file type
                                 fileName: `🎬${selectedEpisode.title}🎬.mp4`,
                                 caption: `Here is the file for *${selectedEpisode.title}*`
