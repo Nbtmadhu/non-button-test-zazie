@@ -1,5 +1,6 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
+const { GDriveDl } = require('api-dylux'); // Import GDriveDl from api-dylux
 const { cmd, commands } = require('../command');
 
 // Command handler for searching cartoons
@@ -31,7 +32,7 @@ cmd({
                 episodes.push({
                     title,
                     postedTime,
-                    episodeLink: `https://ginisisilacartoon.net/${episodeLink}`,
+                    episodeLink: `https://ginisisilacartoon.net${episodeLink}`,
                     imageUrl: imageUrl
                 });
             }
@@ -66,7 +67,7 @@ cmd({
                 if (!isNaN(selectedNumber) && selectedNumber > 0 && selectedNumber <= episodes.length) {
                     const selectedEpisode = episodes[selectedNumber - 1];
 
-                    // Fetch the episode page to extract the video link (iframe src)
+                    // Fetch the episode page to extract the iframe link
                     const episodePageResponse = await axios.get(selectedEpisode.episodeLink);
                     const $ = cheerio.load(episodePageResponse.data);
 
@@ -74,8 +75,10 @@ cmd({
                     const iframeSrc = $('div#player-holder iframe').attr('src');
 
                     if (iframeSrc) {
-                        // Prepare download URL (assuming it's an audio or video file)
-                        const downloadUrl = iframeSrc; // This can be the direct download link
+                        // Use GDriveDl to get the downloadable link
+                        const downloadData = await GDriveDl(iframeSrc); 
+                        const downloadUrl = downloadData.downloadUrl; // Extract the download link
+                        const fileName = `${selectedEpisode.title}.mp4`; // Set a file name
 
                         // Send episode details with image
                         const episodeInfo = `*${selectedEpisode.title}*\n🗓️ Posted: ${selectedEpisode.postedTime}\n🔗 [Watch Episode](${selectedEpisode.episodeLink})`;
@@ -85,12 +88,12 @@ cmd({
                         };
                         await conn.sendMessage(from, imageMessage, { quoted: mek });
 
-                        // Send the video/audio link as a document
+                        // Send the downloadable file as a document
                         await conn.sendMessage(from, {
                             document: { url: downloadUrl },
-                            mimetype: "video/mp4", // Change this if it's a video file
-                            fileName: `${selectedEpisode.title}.mp4`,
-                            caption: `Here is the file for *${selectedEpisode.title}*`
+                            mimetype: "video/mp4", // Assuming it's a video
+                            fileName: fileName,
+                            caption: `Here is the video file for *${selectedEpisode.title}*`
                         }, { quoted: mek });
                     } else {
                         await reply('No downloadable link found for this episode.');
