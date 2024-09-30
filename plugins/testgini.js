@@ -49,7 +49,7 @@ cmd({
         });
 
         // Send the compiled information
-        const sentMsg = await conn.sendMessage(from,{{ text: info }, { quoted: mek });
+        const sentMsg = await conn.sendMessage(from,{ text: info }, { quoted: mek });
         const messageID = sentMsg.key.id; // Save the message ID for later reference
 
         // Listen for the user's response
