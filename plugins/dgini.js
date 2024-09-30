@@ -1,7 +1,7 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
-const { GDriveDl } = require('api-dylux'); // Import GDriveDl from api-dylux
 const { cmd, commands } = require('../command');
+const { GDriveDl } = require('api-dylux'); // Importing the GDriveDl function from the package
 
 // Command handler for searching cartoons
 cmd({
@@ -32,7 +32,7 @@ cmd({
                 episodes.push({
                     title,
                     postedTime,
-                    episodeLink: `https://ginisisilacartoon.net${episodeLink}`,
+                    episodeLink: `https://ginisisilacartoon.net/${episodeLink}`,
                     imageUrl: imageUrl
                 });
             }
@@ -67,7 +67,7 @@ cmd({
                 if (!isNaN(selectedNumber) && selectedNumber > 0 && selectedNumber <= episodes.length) {
                     const selectedEpisode = episodes[selectedNumber - 1];
 
-                    // Fetch the episode page to extract the iframe link
+                    // Fetch the episode page to extract the video link (iframe src)
                     const episodePageResponse = await axios.get(selectedEpisode.episodeLink);
                     const $ = cheerio.load(episodePageResponse.data);
 
@@ -75,26 +75,31 @@ cmd({
                     const iframeSrc = $('div#player-holder iframe').attr('src');
 
                     if (iframeSrc) {
-                        // Use GDriveDl to get the downloadable link
-                        const downloadData = await GDriveDl(iframeSrc); 
-                        const downloadUrl = downloadData.downloadUrl; // Extract the download link
-                        const fileName = `${selectedEpisode.title}.mp4`; // Set a file name
+                        // Use GDriveDl to get the downloadable link from the iframe
+                        const downloadData = await GDriveDl(iframeSrc);
 
-                        // Send episode details with image
-                        const episodeInfo = `*${selectedEpisode.title}*\n🗓️ Posted: ${selectedEpisode.postedTime}\n🔗 [Watch Episode](${selectedEpisode.episodeLink})`;
-                        const imageMessage = {
-                            image: { url: selectedEpisode.imageUrl },
-                            caption: episodeInfo
-                        };
-                        await conn.sendMessage(from, imageMessage, { quoted: mek });
+                        if (downloadData && downloadData.download) {
+                            const downloadUrl = downloadData.download;
 
-                        // Send the downloadable file as a document
-                        await conn.sendMessage(from, {
-                            document: { url: downloadUrl },
-                            mimetype: "video/mp4", // Assuming it's a video
-                            fileName: fileName,
-                            caption: `Here is the video file for *${selectedEpisode.title}*`
-                        }, { quoted: mek });
+                            // Send episode details with image
+                            const episodeInfo = `*${selectedEpisode.title}*\n🗓️ Posted: ${selectedEpisode.postedTime}\n🔗 [Watch Episode](${selectedEpisode.episodeLink})`;
+                            const imageMessage = {
+                                image: { url: selectedEpisode.imageUrl },
+                                caption: episodeInfo
+                            };
+                            await conn.sendMessage(from, imageMessage, { quoted: mek });
+
+                            // Send the video/audio link as a document using the GDriveDl URL
+                            await conn.sendMessage(from, {
+                                document: { url: downloadUrl },
+                                mimetype: "video/mp4", // Adjust this according to the actual file type
+                                fileName: `🎬${selectedEpisode.title}🎬.mp4`,
+                                caption: `Here is the file for *${selectedEpisode.title}*`
+                            }, { quoted: mek });
+                        } else {
+                            await reply('Failed to retrieve the download link for this episode.');
+                        }
+
                     } else {
                         await reply('No downloadable link found for this episode.');
                     }
