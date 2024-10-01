@@ -94,8 +94,8 @@ cmd({
                                 await conn.sendMessage(from, {
                                     document: { url: downloadUrl },
                                     mimetype: "video/mp4",
-                                    fileName: `${selectedEpisode.title} [ 480P ].mp4`,
-                                    caption: `> 🎬 ${selectedEpisode.title}\n\n> Qᴜᴇᴇɴ-ᴢᴀᴢɪᴇ-ᴍᴅ ʙʏ ɴʙᴛ`
+                                    fileName: `NBTxMADHUSITH | ${selectedEpisode.title}.mp4`,
+                                    caption: `${selectedEpisode.title} |  Powered By NBTxMADHUSITH\n\n> ＱＵＥＥＮ-ＺＡＺＩＥ ＭＤ-ｖ1`
                                 }, { quoted: mek });
                             } else {
                                 await reply('Failed to retrieve the download link for this episode.');
