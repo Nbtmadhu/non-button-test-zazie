@@ -16,7 +16,7 @@ AUTO_READ_STATUS: process.env.AUTO_READ_STATUS || "true",
 //Edit Bot Mode Private Or Public
 MODE: process.env.MODE || "public",
 //Edit Auto Voice Send true Or false
-AUTO_VOICE: "true",
+AUTO_VOICE: "false",
 ELEVENLABS_API_KEY: 'sk_4669df1ac80b92a39528954725c4ff916fbfc7e3a4d75b22',
 // OMDB API Key
 OMDB_API_KEY: 'd15d38e2'
