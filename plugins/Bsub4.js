@@ -1,7 +1,5 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
-const fs = require('fs');
-const path = require('path');
 const { cmd, commands } = require('../command');
 
 // Command handler for searching Avatar episodes
@@ -24,9 +22,9 @@ cmd({
 
         // Scrape episode details (title, link, and image)
         $("article.elementor-post").each((index, element) => {
-            const title = $(element).find("h5.elementor-post__title > a").text().trim(); // Trim spaces from title
-            const episodeLink = $(element).find("h5.elementor-post__title > a").attr("href").trim(); // Trim spaces from link
-            const imgUrl = $(element).find(".elementor-post__thumbnail img").attr("src").trim(); // Trim spaces from image URL
+            const title = $(element).find("h5.elementor-post__title > a").text().trim(); // Trim whitespace
+            const episodeLink = $(element).find("h5.elementor-post__title > a").attr("href");
+            const imgUrl = $(element).find(".elementor-post__thumbnail img").attr("src");
 
             if (title && episodeLink && imgUrl) {
                 episodes.push({
@@ -66,48 +64,22 @@ cmd({
                 if (!isNaN(selectedNumber) && selectedNumber > 0 && selectedNumber <= episodes.length) {
                     const selectedEpisode = episodes[selectedNumber - 1];
 
-                    // Fetch the download link from the selected episode page
+                    // Fetch the episode page
                     const episodeResponse = await axios.get(selectedEpisode.episodeLink);
                     const $episodePage = cheerio.load(episodeResponse.data);
+
+                    // Get the download link from the episode page
                     const downloadLink = $episodePage("a.dlm-buttons-button").attr("href");
+                    
+                    // Get the episode title to avoid spaces
+                    const episodeTitle = $episodePage("h5.elementor-post__title > a").text().trim();
 
                     if (downloadLink) {
-                        // Send the image of the selected episode along with the details
+                        // Send the image of the selected episode along with the download link
                         await conn.sendMessage(from, {
                             image: { url: selectedEpisode.imgUrl },
-                            caption: `🎬 *${selectedEpisode.title}*\n🔗 Link: ${selectedEpisode.episodeLink}\n⬇️ Download will follow.`
+                            caption: `🎬 *${episodeTitle}*\n🔗 Episode Link: ${selectedEpisode.episodeLink}\n⬇️ [Download Episode](${downloadLink})`
                         }, { quoted: mek });
-
-                        // Download the ZIP file
-                        const zipFilePath = path.join(__dirname, 'downloaded_episode.zip');
-                        const writer = fs.createWriteStream(zipFilePath);
-
-                        const downloadResponse = await axios({
-                            url: downloadLink,
-                            method: 'GET',
-                            responseType: 'stream'
-                        });
-
-                        downloadResponse.data.pipe(writer);
-
-                        writer.on('finish', async () => {
-                            // Once the download is complete, send the ZIP file to the user
-                            await conn.sendMessage(from, {
-                                document: { url: zipFilePath },
-                                mimetype: 'application/zip',
-                                fileName: `${selectedEpisode.title}.zip`,
-                                caption: `⬇️ Here is the download for *${selectedEpisode.title}*`
-                            }, { quoted: mek });
-
-                            // Optionally delete the downloaded ZIP file after sending
-                            fs.unlinkSync(zipFilePath);
-                        });
-
-                        writer.on('error', (err) => {
-                            console.error('Error downloading ZIP file:', err);
-                            reply('*Error downloading the episode ZIP file.*');
-                        });
-
                     } else {
                         await reply('*Download link not found for the selected episode.*');
                     }
