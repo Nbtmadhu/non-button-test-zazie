@@ -24,9 +24,9 @@ cmd({
 
         // Scrape episode details (title, link, and image)
         $("article.elementor-post").each((index, element) => {
-            const title = $(element).find("h5.elementor-post__title > a").text();
-            const episodeLink = $(element).find("h5.elementor-post__title > a").attr("href");
-            const imgUrl = $(element).find(".elementor-post__thumbnail img").attr("src");
+            const title = $(element).find("h5.elementor-post__title > a").text().trim(); // Trim spaces from title
+            const episodeLink = $(element).find("h5.elementor-post__title > a").attr("href").trim(); // Trim spaces from link
+            const imgUrl = $(element).find(".elementor-post__thumbnail img").attr("src").trim(); // Trim spaces from image URL
 
             if (title && episodeLink && imgUrl) {
                 episodes.push({
