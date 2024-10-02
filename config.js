@@ -6,7 +6,7 @@ function convertToBool(text, fault = 'true') {
 }
 module.exports = {
 // Put Your Session Id Here
-SESSION_ID: process.env.SESSION_ID || "3BcxCTZb#ValoN4in2VsI4stQ0PXe1HANtghfj-IFGmkgTCPhvrw",
+SESSION_ID: process.env.SESSION_ID || "PfRWRSrB#4A633wrGhdy9ysDxTx5oL-7Whk3d0DkGA0tjwrvgEww",
 OWNER_NUMBER: '94760059126@s.whatsapp.net',
 ALIVE_IMG: process.env.ALIVE_IMG || "https://i.postimg.cc/xdhMJy1b/Screenshot-20240830-004711-Pixel-Lab.jpg",
 ALIVE_MSG: process.env.ALIVE_IMG || "🤖🔰 Hi QUEEN-KYLIE-MD Is Online Now 💻\n*💻 Owner* - QUEEN-KYLIE-MD\n\n*💻 Owner Number* -94760059126\n\n_විධාන මෙනුව ලබා ගැනීමට .menu ලෙස ටයිප් කරන්න._",
